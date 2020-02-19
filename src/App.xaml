@@ -1,0 +1,175 @@
+﻿<Application x:Class="Service_Manager.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Service_Manager"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- Menu contextuel-->
+        <ContextMenu  x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+            <MenuItem Header="Ouvrir la configuration" Name="ConfigMenu" CommandParameter="{Binding serviceConf}" Click="ConfigMenu_Click">
+                <MenuItem.Style>
+                    <Style>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding serviceConf}" Value="">
+                                <Setter Property="MenuItem.IsEnabled" Value="False" />
+                            </DataTrigger>
+                            <Trigger Property="MenuItem.IsMouseOver"  Value="True">
+                                <Setter Property="MenuItem.FontWeight" Value="Bold"></Setter>
+                                <Setter Property="MenuItem.Foreground" Value="Black"></Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
+            <MenuItem Header="Ouvrir le dernier log" Name="LogMenu" CommandParameter="{Binding serviceLog}" Click="ConfigMenu_Click">
+                <MenuItem.Style>
+                    <Style>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding serviceLog}" Value="">
+                                <Setter Property="MenuItem.IsEnabled" Value="False" />
+                            </DataTrigger>
+                             <Trigger Property="MenuItem.IsMouseOver"  Value="True">
+                                <Setter Property="MenuItem.FontWeight" Value="Bold"></Setter>
+                                <Setter Property="MenuItem.Foreground" Value="Black"></Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
+        </ContextMenu>
+        <!--Centrer les textes-->
+        <Style x:Key="DataGrid_Centering" TargetType="{x:Type DataGridCell}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!--Style des bouttons, en gérant la dispo-->
+        <Style x:Key="baseButton" TargetType="Button">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <Storyboard>
+                                            <ColorAnimation To="#F0F0F0" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[0].(GradientStop.Color)" Duration="0:0:0.07"/>
+                                            <ColorAnimation To="#E5E5E5" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[1].(GradientStop.Color)" Duration="0:0:0.07"/>
+                                            <ColorAnimation To="#ACACAC" Storyboard.TargetName="BrBrush" Storyboard.TargetProperty="Color" Duration="0:0:0.07" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <ColorAnimation To="#F0F4F9" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[0].(GradientStop.Color)" Duration="0:0:0.07"/>
+                                            <ColorAnimation To="#E0ECF9" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[1].(GradientStop.Color)" Duration="0:0:0.07"/>
+                                            <ColorAnimation To="#7EB4EA" Storyboard.TargetName="BrBrush" Storyboard.TargetProperty="Color" Duration="0:0:0.07" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ColorAnimation To="#DBEDFD" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[0].(GradientStop.Color)" Duration="0:0:0.05"/>
+                                            <ColorAnimation To="#C4E0FC" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[1].(GradientStop.Color)" Duration="0:0:0.05"/>
+                                            <ColorAnimation To="#569DE5" Storyboard.TargetName="BrBrush" Storyboard.TargetProperty="Color" Duration="0:0:0.05" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <ColorAnimation To="#EFEFEF" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[0].(GradientStop.Color)" Duration="0:0:0"/>
+                                            <ColorAnimation To="#EFEFEF" Storyboard.TargetName="BgBrush" Storyboard.TargetProperty="(GradientBrush.GradientStops)[1].(GradientStop.Color)" Duration="0:0:0"/>
+                                            <ColorAnimation To="#D9D9D9" Storyboard.TargetName="BrBrush" Storyboard.TargetProperty="Color" Duration="0:0:0" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border x:Name="Chrome" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush x:Name="BrBrush" Color="#ACACAC" />
+                                </Border.BorderBrush>
+                                <Border.Background>
+                                    <LinearGradientBrush x:Name="BgBrush" EndPoint="0,1" StartPoint="0,0">
+                                        <GradientStop Color="#F0F0F0" Offset="0"/>
+                                        <GradientStop Color="#E5E5E5" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="#ADADAD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="button_on_dispo" TargetType="Button" BasedOn="{StaticResource baseButton}">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=dataGrid, Path=SelectedItem.serviceState}" Value="Arrêté" >
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="button_off_dispo" TargetType="Button" BasedOn="{StaticResource baseButton}">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=dataGrid, Path=SelectedItem.serviceState}" Value="Démarré" >
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Mise en forme Titres -->
+        <Style x:Key="DataGrid_Header" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FFD8D8D8"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <!-- Mise en forme lignes -->
+        <Style x:Key="DataGrid_Row" TargetType="DataGridRow" >
+            <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" /> <!-- Menu contextuel-->
+            <Setter Property="ToolTip" Value="{Binding serviceTooltip}" />
+            <Setter Property="ToolTipService.InitialShowDelay" Value="1000" />
+            <Style.Triggers>
+                <!-- Mise en forme sur sélection -->
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF132595" />
+                    <Setter Property="Foreground" Value="black" />
+                    <Setter Property="BorderBrush" Value="red" />
+                </Trigger>
+                <!-- virer Tooltip si pas présent; idem sur les menus -->
+                <DataTrigger Binding="{Binding serviceTooltip}" Value="">
+                    <Setter Property="ToolTipService.IsEnabled" Value="False" />
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding ElementName=checkBoxDebug, Path=IsChecked}" Value="False" />
+                        <Condition Binding="{Binding serviceState}" Value="Non trouvé" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DataGrid" TargetType="{x:Type DataGrid}">
+            <!--Couleur alternativez ici : sinon tout ce qui est Local ne peut être écraser (donc pas de couleur pour le select)-->
+            <Setter Property="AlternatingRowBackground" Value="#FFDEF7FF"/>
+            <Setter Property="Margin" Value="10,50,140,5"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding debug}" Value="True">
+                    <Setter Property="Margin" Value="10,50,140,170"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Et on vire la couleur de Hightlight-->
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Khaki" />
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.ActiveBorderColorKey}" Color="Transparent"/>
+    </Application.Resources>
+</Application>
