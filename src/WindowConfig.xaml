@@ -1,12 +1,53 @@
-﻿<Window x:Class="Service_Manager.WindowConfig"
+<Window x:Class="Service_Manager.WindowConfig"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Service_Manager"
         mc:Ignorable="d"
-        Title="WindowConfig" Height="300" Width="300">
-    <Grid>
-        
+        Title="Ajouter un service" Height="350" Width="400"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Nom du service *" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxName" Margin="5" ToolTip="Nom système du service" Background="#FFF9A2A2" />
+
+        <Label Grid.Row="1" Grid.Column="0" Content="Titre" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxTitle" Margin="5" ToolTip="Nom à afficher" />
+
+        <Label Grid.Row="2" Grid.Column="0" Content="IP/nom du serveur *" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxIP" Margin="5" ToolTip="IP ou nom du serveur" Background="#FFF9A2A2" />
+
+        <Label Grid.Row="3" Grid.Column="0" Content="Texte tooltip" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBoxTooltip" Margin="5" />
+
+        <Label Grid.Row="4" Grid.Column="0" Content="Catégorie" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBoxCategory" Margin="5" />
+
+        <Label Grid.Row="5" Grid.Column="0" Content="Chemin log" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBoxLogPath" Margin="5" ToolTip="Chemin du fichier de log" />
+
+        <Label Grid.Row="6" Grid.Column="0" Content="Chemin configuration" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBoxConfigPath" Margin="5" ToolTip="Chemin du fichier de configuration" />
+
+        <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <Button x:Name="buttonSave" Content="Save" Width="75" Margin="5" Click="buttonSave_Click"/>
+            <Button x:Name="buttonCancel" Content="Cancel" Width="75" Margin="5" Click="buttonCancel_Click"/>
+        </StackPanel>
     </Grid>
 </Window>

@@ -359,5 +359,20 @@ namespace Service_Manager
             wininfo.WindowStartupLocation = WindowStartupLocation;
             wininfo.Show();
         }
+
+        private void buttonAdd_Click(object sender, RoutedEventArgs e)
+        {
+            WindowConfig winConfig = new WindowConfig();
+            winConfig.Owner = Application.Current.MainWindow;
+            winConfig.WindowStartupLocation = WindowStartupLocation;
+            winConfig.ShowDialog();
+            RefreshDataGrid();
+        }
+
+        public void RefreshDataGrid()
+        {
+            serviceCollection.Clear();
+            dataGrid_Loaded(dataGrid, new RoutedEventArgs());
+        }
     }
 }
