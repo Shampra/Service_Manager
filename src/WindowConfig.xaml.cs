@@ -20,9 +20,27 @@ namespace Service_Manager
     /// </summary>
     public partial class WindowConfig : Window
     {
+        private int _serviceKeyToEdit = 0;
+
         public WindowConfig()
         {
             InitializeComponent();
+        }
+
+        public WindowConfig(myService service, int serviceKey)
+        {
+            InitializeComponent();
+            _serviceKeyToEdit = serviceKey;
+
+            textBoxName.Text = service.serviceId;
+            textBoxTitle.Text = service.serviceName;
+            textBoxIP.Text = service.serviceIP;
+            textBoxTooltip.Text = service.serviceTooltip;
+            textBoxCategory.Text = service.serviceCat;
+            textBoxLogPath.Text = service.serviceLog;
+            textBoxConfigPath.Text = service.serviceConf;
+
+            this.Title = "Modifier un service";
         }
 
         private void buttonSave_Click(object sender, RoutedEventArgs e)
@@ -30,7 +48,7 @@ namespace Service_Manager
             // Validate input
             if (string.IsNullOrWhiteSpace(textBoxName.Text) || string.IsNullOrWhiteSpace(textBoxIP.Text))
             {
-                MessageBox.Show("Service Name and IP/Server are required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Le nom du service et l'IP/nom dus erveur sont requis.", "Erreur de validation", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -40,35 +58,30 @@ namespace Service_Manager
                 Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
                 AppSettingsSection appSettings = config.AppSettings;
 
-                // Find the next available service ID
-                int nextServiceId = 1;
-                while (appSettings.Settings["Service" + nextServiceId] != null)
+                if (_serviceKeyToEdit == 0) // Add new service
                 {
-                    nextServiceId++;
+                    // Find the next available service ID
+                    int nextServiceId = 1;
+                    while (appSettings.Settings["Service" + nextServiceId] != null)
+                    {
+                        nextServiceId++;
+                    }
+                    _serviceKeyToEdit = nextServiceId;
                 }
 
-                // Add the new service
+                // Add or update the service
                 string title = string.IsNullOrWhiteSpace(textBoxTitle.Text) ? textBoxName.Text : textBoxTitle.Text;
-                string serviceValue = $"{textBoxName.Text};{title};{textBoxIP.Text}";
-                appSettings.Settings.Add("Service" + nextServiceId, serviceValue);
+                string serviceValue = string.Format("{0};{1};{2}", textBoxName.Text, title, textBoxIP.Text);
+                if (appSettings.Settings["Service" + _serviceKeyToEdit] != null)
+                    appSettings.Settings["Service" + _serviceKeyToEdit].Value = serviceValue;
+                else
+                    appSettings.Settings.Add("Service" + _serviceKeyToEdit, serviceValue);
 
-                // Add optional settings
-                if (!string.IsNullOrWhiteSpace(textBoxTooltip.Text))
-                {
-                    appSettings.Settings.Add("Tooltip_" + nextServiceId, textBoxTooltip.Text);
-                }
-                if (!string.IsNullOrWhiteSpace(textBoxCategory.Text))
-                {
-                    appSettings.Settings.Add("Cat_" + nextServiceId, textBoxCategory.Text);
-                }
-                if (!string.IsNullOrWhiteSpace(textBoxLogPath.Text))
-                {
-                    appSettings.Settings.Add("Log_" + nextServiceId, textBoxLogPath.Text);
-                }
-                if (!string.IsNullOrWhiteSpace(textBoxConfigPath.Text))
-                {
-                    appSettings.Settings.Add("Conf_" + nextServiceId, textBoxConfigPath.Text);
-                }
+                // Add or update optional settings
+                UpdateOptionalSetting(appSettings, "Tooltip_" + _serviceKeyToEdit, textBoxTooltip.Text);
+                UpdateOptionalSetting(appSettings, "Cat_" + _serviceKeyToEdit, textBoxCategory.Text);
+                UpdateOptionalSetting(appSettings, "Log_" + _serviceKeyToEdit, textBoxLogPath.Text);
+                UpdateOptionalSetting(appSettings, "Conf_" + _serviceKeyToEdit, textBoxConfigPath.Text);
 
                 // Save the changes
                 config.Save(ConfigurationSaveMode.Modified);
@@ -78,7 +91,29 @@ namespace Service_Manager
             }
             catch (ConfigurationErrorsException ex)
             {
-                MessageBox.Show("Error writing to configuration file: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error d'écriture du fichier de configuration: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UpdateOptionalSetting(AppSettingsSection appSettings, string key, string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                if (appSettings.Settings[key] != null)
+                {
+                    appSettings.Settings[key].Value = value;
+                }
+                else
+                {
+                    appSettings.Settings.Add(key, value);
+                }
+            }
+            else
+            {
+                if (appSettings.Settings[key] != null)
+                {
+                    appSettings.Settings.Remove(key);
+                }
             }
         }
 

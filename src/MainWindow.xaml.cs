@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,6 +18,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
 using MahApps.Metro.Controls;
+using System.IO;
+using System.Diagnostics;
 
 
 
@@ -25,7 +27,7 @@ using MahApps.Metro.Controls;
 namespace Service_Manager
 {
     // Définition de la classe service
-    class myService : INotifyPropertyChanged // classe avec la notification de changement
+    public class myService : INotifyPropertyChanged // classe avec la notification de changement
     {
         public int serviceKey { get; set; }
         public string serviceId { get; set; }
@@ -50,7 +52,7 @@ namespace Service_Manager
             }
         }
 
-        
+
         // Constructeur
         public myService(int serviceKey, string serviceId, string serviceName, string serviceIP, string serviceCat, string serviceTooltip, string serviceConf, string serviceLog)
         {
@@ -107,17 +109,22 @@ namespace Service_Manager
         }
         // puis on défini le traitement pour un affichage type
         private void logIt(string txtLog)
-            {
-                Application.Current.Dispatcher.Invoke(new Action(delegate { textBox.Text += string.Format("{0:yyyy-MM-dd HH:mm.ss}", DateTime.Now) +" - "+ txtLog + Environment.NewLine; }));
-            }
+        {
+            Application.Current.Dispatcher.Invoke(new Action(delegate { textBox.Text += string.Format("{0:yyyy-MM-dd HH:mm.ss}", DateTime.Now) + " - " + txtLog + Environment.NewLine; }));
+        }
 
         // On créé l'objet collection surveillé :
-        ObservableCollection<myService> serviceCollection = new ObservableCollection<myService>() ;
+        ObservableCollection<myService> serviceCollection = new ObservableCollection<myService>();
+        private CollectionViewSource cvs;
         public MainWindow()
         {
             debug = ConfigurationManager.AppSettings["debug"].Equals("1"); // récup débug true/false avec conversions tring => bool
             InitializeComponent();
             BindingOperations.EnableCollectionSynchronization(serviceCollection, _lock);
+
+            cvs = new CollectionViewSource();
+            cvs.Source = serviceCollection;
+            dataGrid.ItemsSource = cvs.View;
         }
         #endregion Gestion debug et Notify
 
@@ -125,32 +132,37 @@ namespace Service_Manager
         // Au chargement
         private void dataGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            // On assigne au dataGrid
-            var grid = sender as DataGrid;
-            grid.ItemsSource = serviceCollection;
-
-            // On récupère les objets
-            string[] serviceList = ConfigurationManager.AppSettings.AllKeys
-                            .Where(key => key.StartsWith("Service"))
-                            .Select(key => key.Substring(7) +";"+ConfigurationManager.AppSettings[key])
-                            .ToArray();
-
-            foreach (var stringService in serviceList.Select((value, i) => new { i, value }))
+            if (serviceCollection.Count == 0)
             {
-                string[] key = stringService.value.Split(';');
-                int keyId = stringService.i; // un Id indépendant pour la gestion via IHM;
-                // gestion des clés optionnelles
-                string valTooltip = "", valCat = "", pathConf = "", pathLog = ""; 
-                if (ConfigurationManager.AppSettings.AllKeys.Contains("Tooltip_" + key[0])) valTooltip = ConfigurationManager.AppSettings["Tooltip_" + key[0]];
-                if (ConfigurationManager.AppSettings.AllKeys.Contains("Cat_" + key[0]))
+                // On récupère les objets
+                string[] serviceList = ConfigurationManager.AppSettings.AllKeys
+                                .Where(key => key.StartsWith("Service"))
+                                .Select(key => key.Substring(7) + ";" + ConfigurationManager.AppSettings[key])
+                                .ToArray();
+
+                foreach (var stringService in serviceList.Select((value, i) => new { i, value }))
                 {
-                    valCat = ConfigurationManager.AppSettings["Cat_" + key[0]];
-                    dataGrid.Columns[3].Visibility = Visibility.Visible;
+                    string[] key = stringService.value.Split(';');
+                    int keyId = stringService.i; // un Id indépendant pour la gestion via IHM;
+                                                 // gestion des clés optionnelles
+                    string valTooltip = "", valCat = "", pathConf = "", pathLog = "";
+                    if (ConfigurationManager.AppSettings.AllKeys.Contains("Tooltip_" + key[0])) valTooltip = ConfigurationManager.AppSettings["Tooltip_" + key[0]];
+                    if (ConfigurationManager.AppSettings.AllKeys.Contains("Cat_" + key[0]))
+                    {
+                        valCat = ConfigurationManager.AppSettings["Cat_" + key[0]];
+                    }
+                    if (ConfigurationManager.AppSettings.AllKeys.Contains("Log_" + key[0])) pathLog = ConfigurationManager.AppSettings["Log_" + key[0]];
+                    if (ConfigurationManager.AppSettings.AllKeys.Contains("Conf_" + key[0])) pathConf = ConfigurationManager.AppSettings["Conf_" + key[0]];
+                    serviceCollection.Add(new myService(keyId, key[1], key[2], key[3], valCat, valTooltip, pathConf, pathLog));
                 }
-                if (ConfigurationManager.AppSettings.AllKeys.Contains("Log_" + key[0])) pathLog = ConfigurationManager.AppSettings["Log_" + key[0]];
-                if (ConfigurationManager.AppSettings.AllKeys.Contains("Conf_" + key[0])) pathConf = ConfigurationManager.AppSettings["Conf_" + key[0]];
-                serviceCollection.Add(new myService(keyId, key[1], key[2], key[3], valCat, valTooltip, pathConf, pathLog));
+
+                // Populate category filter
+                var categories = new List<string> { "All" };
+                categories.AddRange(serviceCollection.Select(s => s.serviceCat).Distinct().Where(c => !string.IsNullOrEmpty(c)).OrderBy(c => c));
+                categoryFilterComboBox.ItemsSource = categories;
+                categoryFilterComboBox.SelectedIndex = 0;
             }
+
             status_check();
         }
 
@@ -159,13 +171,13 @@ namespace Service_Manager
         /// Récupération et traduction des états des services Windows (via un Task)
         /// </summary>
         /// <param name="serviceCible">Permet de ne mettre à jour qu'un service ciblé</param>
-        private void status_check(int serviceCible=999)
+        private void status_check(int serviceCible = 999)
         {
             if (serviceCible == 999) logIt("Etat des services en cours de mise à jour.");
             foreach (var item in serviceCollection)
             {
                 var currentService = item as myService;
-                if (serviceCible ==999 || serviceCible== currentService.serviceKey) // si tous ou si celui demandé
+                if (serviceCible == 999 || serviceCible == currentService.serviceKey) // si tous ou si celui demandé
                 {
                     // lancement en arrière plan 
                     Task.Run(() =>
@@ -210,10 +222,10 @@ namespace Service_Manager
                             logIt(currentService.serviceName + " sur " + currentService.serviceIP + " : droits insuffisants ou serveur inconnu!");
                         }
                     });
-                }     
+                }
             }
         }
-        
+
         /// <summary>
         /// Event sur boutton Démarrer : démarre le ou les services sélectionnés
         /// </summary>
@@ -226,7 +238,7 @@ namespace Service_Manager
             foreach (var item in selected)
             {
                 var selectedService = item as myService;
- 
+
                 if ((ServiceController.GetServices(selectedService.serviceIP).Any(serviceController => serviceController.ServiceName.Equals(selectedService.serviceId)))
                     && selectedService.serviceState == "Arrêté")
                 {
@@ -241,9 +253,9 @@ namespace Service_Manager
                             sc.WaitForStatus(ServiceControllerStatus.Running, timeout);
                             logIt(selectedService.serviceName + " démarré.");
                         }
-                            catch (Exception ex)
+                        catch (Exception ex)
                         {
-                                MessageBox.Show("Le service " + selectedService.serviceName + " n'a pas pu être démarré."+ Environment.NewLine + " Erreur : " + ex.ToString());
+                            MessageBox.Show("Le service " + selectedService.serviceName + " n'a pas pu être démarré." + Environment.NewLine + " Erreur : " + ex.ToString());
                         }
                         status_check(selectedService.serviceKey); // et on fini en mettant à jour le status
                     });
@@ -295,7 +307,7 @@ namespace Service_Manager
                     });
                 }
                 else
-                    logIt("Impossible d'arrêter le service "+selectedService.serviceName+", non trouvé");
+                    logIt("Impossible d'arrêter le service " + selectedService.serviceName + ", non trouvé");
 
             }
         }
@@ -372,7 +384,168 @@ namespace Service_Manager
         public void RefreshDataGrid()
         {
             serviceCollection.Clear();
+            cvs.View.Filter = null;
+            categoryFilterComboBox.ItemsSource = null;
             dataGrid_Loaded(dataGrid, new RoutedEventArgs());
+        }
+
+        private void categoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (categoryFilterComboBox.SelectedItem != null)
+            {
+                string selectedCategory = categoryFilterComboBox.SelectedItem.ToString();
+                if (selectedCategory == "All")
+                {
+                    cvs.View.Filter = null;
+                }
+                else
+                {
+                    cvs.View.Filter = item =>
+                    {
+                        myService service = item as myService;
+                        return service.serviceCat == selectedCategory;
+                    };
+                }
+            }
+        }
+
+        private void ConfigMenu_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            if (menuItem != null)
+            {
+                string filePath = menuItem.CommandParameter as string;
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    if (File.Exists(filePath))
+                    {
+                        Process.Start(filePath);
+                    }
+                    else
+                    {
+                        MessageBox.Show(string.Format("Le fichier n'a pas été trouvé. Chemin du fichier : {0}", filePath), "Fichier non trouvé", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void LogMenu_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            if (menuItem != null)
+            {
+                string filePath = menuItem.CommandParameter as string;
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    if (File.Exists(filePath))
+                    {
+                        Process.Start(filePath);
+                    }
+                    else
+                    {
+                        MessageBox.Show(string.Format("Le fichier n'a pas été trouvé. Chemin du fichier : {0}", filePath), "Fichier non trouvé", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void EditMenu_Click(object sender, RoutedEventArgs e)
+        {
+            myService selectedService = dataGrid.SelectedItem as myService;
+            if (selectedService != null)
+            {
+                // The service key in App.config is not the same as serviceKey in myService object.
+                // We need to find the key in App.config that corresponds to the selected service.
+                // The serviceKey in myService is just an index in the collection, which is not reliable.
+                // A better approach would be to find the key based on the service name and IP, but that's not guaranteed to be unique.
+                // The current implementation of adding a service finds the next available ID.
+                // The serviceId is the name of the service, serviceName is the title.
+                // Let's find the key in App.config. The value is "serviceId;serviceName;serviceIP".
+
+                string[] serviceList = ConfigurationManager.AppSettings.AllKeys
+                                        .Where(key => key.StartsWith("Service"))
+                                        .ToArray();
+
+                string keyToEdit = "";
+                foreach (var key in serviceList)
+                {
+                    string[] serviceValues = ConfigurationManager.AppSettings[key].Split(';');
+                    if (serviceValues.Length >= 3 && serviceValues[0] == selectedService.serviceId && serviceValues[2] == selectedService.serviceIP)
+                    {
+                        keyToEdit = key;
+                        break;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(keyToEdit))
+                {
+                    int serviceKey = int.Parse(keyToEdit.Substring(7));
+                    WindowConfig winConfig = new WindowConfig(selectedService, serviceKey);
+                    winConfig.Owner = Application.Current.MainWindow;
+                    winConfig.WindowStartupLocation = WindowStartupLocation;
+                    winConfig.ShowDialog();
+                    RefreshDataGrid();
+                }
+                else
+                {
+                    MessageBox.Show("Could not find the service in the configuration file.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void DeleteMenu_Click(object sender, RoutedEventArgs e)
+        {
+            myService selectedService = dataGrid.SelectedItem as myService;
+            if (selectedService != null)
+            {
+                MessageBoxResult result = MessageBox.Show(string.Format("Etes-vous sûr de vouloir supprimer le service '{0}'?", selectedService.serviceName), "Confirmer la suppression", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    string[] serviceList = ConfigurationManager.AppSettings.AllKeys
+                                            .Where(key => key.StartsWith("Service"))
+                                            .ToArray();
+
+                    string keyToDelete = "";
+                    foreach (var key in serviceList)
+                    {
+                        string[] serviceValues = ConfigurationManager.AppSettings[key].Split(';');
+                        if (serviceValues.Length >= 3 && serviceValues[0] == selectedService.serviceId && serviceValues[2] == selectedService.serviceIP)
+                        {
+                            keyToDelete = key;
+                            break;
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(keyToDelete))
+                    {
+                        try
+                        {
+                            int serviceKey = int.Parse(keyToDelete.Substring(7));
+                            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                            AppSettingsSection appSettings = config.AppSettings;
+
+                            appSettings.Settings.Remove("Service" + serviceKey);
+                            appSettings.Settings.Remove("Tooltip_" + serviceKey);
+                            appSettings.Settings.Remove("Cat_" + serviceKey);
+                            appSettings.Settings.Remove("Log_" + serviceKey);
+                            appSettings.Settings.Remove("Conf_" + serviceKey);
+
+                            config.Save(ConfigurationSaveMode.Modified);
+                            ConfigurationManager.RefreshSection("appSettings");
+
+                            RefreshDataGrid();
+                        }
+                        catch (ConfigurationErrorsException ex)
+                        {
+                            MessageBox.Show("Erreur d'écriture du fichier de configuration: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Impossible de trouver le service dans le fichier de configuration.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
         }
     }
 }
