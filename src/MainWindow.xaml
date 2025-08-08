@@ -143,9 +143,7 @@
         <Button Background="{x:Null}" Foreground="{x:Null}" BorderThickness="0" BorderBrush="Transparent" Margin="3,3,0,0" Width="26" Height="25" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Button_Click">
             <Image x:Name="image" HorizontalAlignment="Left"  VerticalAlignment="Top"  Source="Images/icon_info.png" Stretch="None" Margin="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
         </Button>
-        <Button x:Name="button_Config" Content="Configurer" Margin="0,236,30,0" VerticalAlignment="Top" Click="buttonRefresh_click" HorizontalAlignment="Right" Width="80" Height="22" 
-            Style="{DynamicResource baseButton}" IsEnabled="False" Grid.Column="1"/>
-        <Button x:Name="buttonAdd" Content="Add a service" Margin="0,263,30,0" VerticalAlignment="Top" Click="buttonAdd_Click" HorizontalAlignment="Right" Width="80" Height="22"
+        <Button x:Name="buttonAdd" Content="Ajouter un service" Margin="0,233,30,0" VerticalAlignment="Top" Click="buttonAdd_Click" HorizontalAlignment="Right" Width="80" Height="22"
             Style="{DynamicResource baseButton}" Grid.Column="1"/>
     </Grid>
 </Controls:MetroWindow>
