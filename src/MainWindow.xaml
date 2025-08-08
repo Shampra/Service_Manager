@@ -145,6 +145,8 @@
         </Button>
         <Button x:Name="button_Config" Content="Configurer" Margin="0,236,30,0" VerticalAlignment="Top" Click="buttonRefresh_click" HorizontalAlignment="Right" Width="80" Height="22" 
             Style="{DynamicResource baseButton}" IsEnabled="False" Grid.Column="1"/>
+        <Button x:Name="buttonAdd" Content="Add a service" Margin="0,263,30,0" VerticalAlignment="Top" Click="buttonAdd_Click" HorizontalAlignment="Right" Width="80" Height="22"
+            Style="{DynamicResource baseButton}" Grid.Column="1"/>
     </Grid>
 </Controls:MetroWindow>
     

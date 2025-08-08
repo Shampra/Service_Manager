@@ -1,12 +1,53 @@
-﻿<Window x:Class="Service_Manager.WindowConfig"
+<Window x:Class="Service_Manager.WindowConfig"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Service_Manager"
         mc:Ignorable="d"
-        Title="WindowConfig" Height="300" Width="300">
-    <Grid>
-        
+        Title="Add a new service" Height="350" Width="400"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Service Name:" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxName" Margin="5" />
+
+        <Label Grid.Row="1" Grid.Column="0" Content="Title (optional):" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxTitle" Margin="5" />
+
+        <Label Grid.Row="2" Grid.Column="0" Content="IP/Server:" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxIP" Margin="5" />
+
+        <Label Grid.Row="3" Grid.Column="0" Content="Tooltip (optional):" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBoxTooltip" Margin="5" />
+
+        <Label Grid.Row="4" Grid.Column="0" Content="Category (optional):" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBoxCategory" Margin="5" />
+
+        <Label Grid.Row="5" Grid.Column="0" Content="Log Path (optional):" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBoxLogPath" Margin="5" />
+
+        <Label Grid.Row="6" Grid.Column="0" Content="Config Path (optional):" Margin="5" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBoxConfigPath" Margin="5" />
+
+        <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <Button x:Name="buttonSave" Content="Save" Width="75" Margin="5" Click="buttonSave_Click"/>
+            <Button x:Name="buttonCancel" Content="Cancel" Width="75" Margin="5" Click="buttonCancel_Click"/>
+        </StackPanel>
     </Grid>
 </Window>
